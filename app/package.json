@@ -6,7 +6,7 @@
   "scripts": {
     "start": "electron .",
     "dev": "concurrently \"yarn run dev:electron\" \"yarn run dev:svelte\"",
-    "dev:electron": "NODE_ENV=development electron .",
+    "dev:electron": "wait-on http://localhost:5173 && NODE_ENV=development electron .",
     "dev:svelte": "cd svelte-app && yarn dev"
   },
   "repository": "https://github.com/electron/electron-quick-start",
@@ -21,7 +21,8 @@
   "license": "CC0-1.0",
   "devDependencies": {
     "concurrently": "^9.1.2",
-    "electron": "^34.0.2"
+    "electron": "^34.0.2",
+    "wait-on": "^8.0.2"
   },
   "dependencies": {}
 }
