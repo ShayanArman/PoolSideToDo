@@ -15,5 +15,30 @@ datasource db {
 
 model User {
   id   String  @id @default(uuid())
-  name String?
+}
+
+model TodoList {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+  shareKey  String   @unique @default(cuid())
+
+  todos Todo[]
+}
+
+model Todo {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+  text      String
+  state     State
+
+  listId String
+  list   TodoList @relation(fields: [listId], references: [id], onDelete: Cascade)
+}
+
+enum State {
+  TODO
+  ONGOING
+  DONE
 }

@@ -1,6 +1,7 @@
 {
   "name": "electron-quick-start",
   "version": "1.0.0",
+  "type": "module",
   "description": "A minimal Electron application",
   "main": "main.js",
   "scripts": {
@@ -24,5 +25,7 @@
     "electron": "^34.0.2",
     "wait-on": "^8.0.2"
   },
-  "dependencies": {}
+  "dependencies": {
+    "electron-store": "^10.0.1"
+  }
 }

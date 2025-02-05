@@ -1,31 +1,36 @@
 // Modules to control application life and create native browser window
-const { app, BrowserWindow } = require('electron')
-const path = require('node:path')
+import { app, BrowserWindow, ipcMain } from 'electron';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+import Store from 'electron-store';
+
+const store = new Store();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 function createWindow () {
   const mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
     webPreferences: {
-      // If you need nodeIntegration or other settings, configure them here.
-      // For security, it's best to disable nodeIntegration when possible.
-      nodeIntegration: false,
-      contextIsolation: true,
+      // preload: path.join(__dirname, 'preload.js'), // the problem is here.
+      preload: new URL('preload.mjs', import.meta.url).pathname,
+      nodeIntegration: true,
+      contextIsolation: true
     }
   });
 
   const isDev = process.env.NODE_ENV === 'development';
 
   if (isDev) {
-    // During development, load from the Vite dev server
     mainWindow.loadURL('http://localhost:5173');
   } else {
-    // In production, load the built index.html from the Svelte app
     mainWindow.loadFile(path.join(__dirname, 'svelte-app', 'dist', 'index.html'));
   }
   
   // Open the DevTools.
-  // mainWindow.webContents.openDevTools()
+  mainWindow.webContents.openDevTools()
 }
 
 // This method will be called when Electron has finished
@@ -33,6 +38,22 @@ function createWindow () {
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
   createWindow()
+
+  // Handle get requests from renderer
+  ipcMain.handle('store-get', (event, key) => {
+    return store.get(key);
+  });
+
+  // Handle set requests from renderer
+  ipcMain.handle('store-set', (event, key, value) => {
+    store.set(key, value);
+    return true;
+  });
+
+  ipcMain.handle('store-clear', () => {
+    store.clear();
+    return true;
+  });
 
   app.on('activate', function () {
     // On macOS it's common to re-create a window in the app when the

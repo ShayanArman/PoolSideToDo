@@ -1,4 +1,5 @@
-// server.js
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient()
 const express = require('express');
 const cors = require('cors');
 const app = express();
@@ -25,6 +26,27 @@ app.use((req, res, next) => {
 app.get('/', (req, res) => {
   res.json({ message: 'Hello World!' });
 });
+
+app.post('/api/v1/users', async (req, res) => {
+  try {
+    const user = await prisma.user.create({
+      data: {}
+    });
+
+    if (!user) {
+      throw new Error("unable to create user");
+    }
+    
+    return res.status(201).json({
+      user
+    })
+  } catch (error) {
+    console.error('Error creating user:', error)
+    return res.status(500).json({
+      error: 'Failed to create user'
+    })
+  }
+})
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
