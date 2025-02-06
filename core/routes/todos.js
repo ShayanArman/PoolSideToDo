@@ -97,7 +97,7 @@ router.patch('/:todoId', async (req, res) => {
       return res.status(404).json({ error: 'Todo not found' });
     }
 
-    if (!isTransitionAllowed(currentTodo.state, newState)) {
+    if (!isTransitionAllowed(currentTodo.state, state)) {
       return res.status(400).json({ error: 'Invalid state transition' });
     }
 

@@ -2,7 +2,6 @@ const userRoutes = require('./routes/users');
 const listRoutes = require('./routes/lists');
 const todoRoutes = require('./routes/todos');
 const express = require('express');
-const router = express.Router();
 const cors = require('cors');
 const app = express();
 const port = process.env.PORT;
@@ -29,7 +28,7 @@ app.use((req, res, next) => {
 
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/lists', listRoutes);
-app.use('/api/v1/todos', todoRoutes);
+app.use('/api/v1/todos', todoRoutes.router);
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
