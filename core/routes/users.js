@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 const prisma = new PrismaClient()
 
-router.post('/api/v1/users', async (req, res) => {
+router.post('/', async (req, res) => {
   try {
     const user = await prisma.user.create({
       data: {}

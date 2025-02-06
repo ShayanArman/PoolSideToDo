@@ -1,31 +1,74 @@
 <script>
   import viteLogo from '/vite.svg'
-  import Counter from './components/Counter.svelte'
   import Loader from './components/common/Loader.svelte'
   import ListView from './components/ListView.svelte'
+  import JoinList from './components/JoinList.svelte';
+
   import {
     onMount
   } from 'svelte';
+
+  const apiKey = import.meta.env.VITE_KEY;
+  let showJoinModal = false;
   let message = '';
 
-  const apiKey =
-    import.meta.env.VITE_KEY;
+  const joinList = () => {
+    showJoinModal = true;
+  };
 
   // Is user Created and logged in?
   // Is User part of a Todo List?
   let userId = undefined;
-  let listId = undefined;
-  let res;
+  let listKey = undefined;
+
+  const handleJoinSuccess = async (newListKey) => {
+    try {
+      // @ts-ignore
+      await window.storeAPI.set('listKey', newListKey);
+      listKey = newListKey;
+      message = 'List joined successfully';
+      showJoinModal = false;
+    } catch (error) {
+      message = 'Error joining list';
+      console.error(error);
+    }
+  };
+
+  const createList = async () => {
+    try {
+      // create a function to call the backend and make a list
+      const response = await fetch('http://localhost:3000/api/v1/lists', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      const data = await response.json();
+      const newListKey = data?.list?.shareKey ?? null;
+      if (!newListKey) {
+        throw new Error("No list created");
+      } 
+
+      // @ts-ignore
+      await window.storeAPI.set('listKey', newListKey);
+      listKey = newListKey;
+      message = 'List created successfully';
+    } catch (error) {
+      message = 'Error creating List';
+      console.error(error);
+    }
+  }
 
   onMount(async () => {
     // Retrieve stored data using the exposed API
     // @ts-ignore
     userId = await window.storeAPI.get('userId');
     // @ts-ignore
-    listId = await window.storeAPI.get('listId');
+    listKey = await window.storeAPI.get('listKey');
 
+    // create a user. store the response in electron-store
     if (!userId) {
-      // create a user. store the response in electron-store
       try {
         const response = await fetch('http://localhost:3000/api/v1/users', {
           method: 'POST',
@@ -38,11 +81,11 @@
         const newUserId = data?.user?.id ?? null;
         if (!newUserId) {
           throw new Error("No user created");
-        }
+        } 
 
         // @ts-ignore
         await window.storeAPI.set('userId', newUserId);
-        userId = data.user.userId;
+        userId = newUserId;
         message = 'User created successfully';
       } catch (error) {
         message = 'Error creating user';
@@ -53,34 +96,39 @@
 </script>
 
 {#if userId === undefined }
-<div>
-  {message}
   <Loader message="Loading Poolside" />
-</div>
-{:else if (!!userId && !!listId) }
-<ListView />
+{:else if (!!userId && !!listKey) }
+  <ListView userId={userId} listKey={listKey} />
 {:else}
 <div>
-    <div>
-        <a href="https://vite.dev" target="_blank" rel="noreferrer">
-            <img src={viteLogo} class="logo" alt="Vite Logo" />
-        </a>
-    </div>
-    <h1>Poolside List</h1>
+  <div>
+    <a href="https://vite.dev" target="_blank" rel="noreferrer">
+      <img src={viteLogo} class="logo" alt="Vite Logo" />
+    </a>
+  </div>
+  <h1>Poolside List</h1>
 
-    <div class="card">
-        <p>message: {message || userId}</p>
-        <p>{res}</p>
-        <Counter />
-    </div>
+  <div class="card">
+      {#if message}<p>message: {message}</p>{/if}
+      <p>UserId: <span style="font-weight: bold;">{userId}</span></p>
+      <button onclick={createList}>New List</button>
+      <button onclick={joinList}>Join List</button>
+  </div>
 
-    <p>
-        Todo lists for the Rest of Us
-    </p>
+  <p>
+    ToDo Lists for the Rest of Us
+  </p>
 
-    <p class="read-the-docs">
-        Built in Australia
-    </p>
+  <p class="read-the-docs">
+    Built in Australia
+  </p>
+
+  {#if showJoinModal}
+    <JoinList 
+      onClose={() => { showJoinModal = false}} 
+      onSuccess={handleJoinSuccess}
+    />
+  {/if}
 </div>
 {/if}
 
