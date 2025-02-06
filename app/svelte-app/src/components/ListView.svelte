@@ -33,15 +33,6 @@
 		const todo = todos.find(t => t.id === todoId);
 		if (!todo) return;
 
-		const allowedTransitions = {
-			"TODO": ["ONGOING"],
-			"ONGOING": ["TODO", "DONE"],
-			"DONE": ["ONGOING"]
-		};
-		if (!allowedTransitions[todo.state].includes(targetState)) {
-			return;
-		}
-
 		try {
 			const response = await fetch(`http://localhost:3000/api/v1/todos/${todoId}?listKey=${listKey}`, {
 				method: 'PATCH',

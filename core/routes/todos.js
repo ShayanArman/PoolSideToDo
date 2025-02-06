@@ -61,6 +61,18 @@ router.get('/', async (req, res) => {
   }
 });
 
+function isTransitionAllowed(currentState, targetState) {
+  const allowedTransitions = {
+    "TODO": ["ONGOING"],
+    "ONGOING": ["TODO", "DONE"],
+    "DONE": ["ONGOING"]
+  };
+
+  return allowedTransitions[currentState].includes(targetState);
+}
+
+// in the best place check for 'allowed' transitions.
+// if it is not allowed throw an error. make a helper function to check for allowed transitions.
 router.patch('/:todoId', async (req, res) => {
   const { todoId } = req.params;
   // include the listKey just to make sure they only edit todos that they have access to.
@@ -76,6 +88,17 @@ router.patch('/:todoId', async (req, res) => {
     const list = await prisma.todoList.findUnique({ where: { shareKey: listKey } });
     if (!list) {
       return res.status(404).json({ error: 'TodoList not found' });
+    }
+
+    const currentTodo = await prisma.todo.findUnique({
+      where: { id: todoId, listId: list.id }
+    });
+    if (!currentTodo) {
+      return res.status(404).json({ error: 'Todo not found' });
+    }
+
+    if (!isTransitionAllowed(currentTodo.state, newState)) {
+      return res.status(400).json({ error: 'Invalid state transition' });
     }
 
     const todo = await prisma.todo.update({
