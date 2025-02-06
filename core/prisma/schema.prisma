@@ -31,7 +31,7 @@ model Todo {
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
   text      String
-  state     State
+  state     State @default(TODO)
 
   listId String
   list   TodoList @relation(fields: [listId], references: [id], onDelete: Cascade)
