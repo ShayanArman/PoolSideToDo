@@ -1,0 +1,18 @@
+{
+  "name": "poolside",
+  "version": "1.0.0",
+  "description": "poolside todo application",
+  "main": "index.js",
+  "repository": "git@github.com:ShayanArman/PoolSideToDo.git",
+  "author": "Shayan Arman <shayan.arman2@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "wait-on": "^8.0.2"
+  },
+  "scripts": {
+    "dev": "concurrently \"yarn run dev:core\" \"yarn run dev:app\"",
+    "dev:core": "yarn --cwd core dev",
+    "dev:app": "wait-on tcp:3000 && yarn --cwd app dev"
+  }
+}
