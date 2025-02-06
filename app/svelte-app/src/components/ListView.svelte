@@ -1,67 +1,81 @@
 <script>
+	import { onMount } from 'svelte';
+	const apiKey = import.meta.env.VITE_KEY;
+	export let listKey;
 	// In-memory state for the list of todos and new todo text
 	let todos = [];
 	let newTodoText = "";
-	const user = "default";
-  export let userId;
-  export let listKey;
+	let message = '';
+	let errorMessage = '';
 
-	// Returns an ISO timestamp for tracking when a todo is updated
-	function getTimestamp() {
-		return new Date().toISOString();
-	}
+	const addTodo = async () => {
+		if (!newTodoText) {
+			return;
+		}
 
-	// Add a new todo if text is provided
-	function addTodo() {
-		if (newTodoText.trim() === "") return;
-		const newTodo = {
-			id: Date.now(), // Using timestamp as a simple unique ID
-			text: newTodoText,
-			state: "TODO",
-			user,
-			updatedAt: getTimestamp()
-		};
-		todos = [...todos, newTodo];
-		newTodoText = "";
-	}
-
-	// Update a todo's state based on allowed transitions
-	function updateTodoState(todoId, targetState) {
-		todos = todos.map(todo => {
-			if (todo.id === todoId) {
-				const allowedTransitions = {
-					"TODO": ["ONGOING"],
-					"ONGOING": ["TODO", "DONE"],
-					"DONE": ["ONGOING"]
-				};
-				if (allowedTransitions[todo.state].includes(targetState)) {
-					return { ...todo, state: targetState, updatedAt: getTimestamp() };
+		try {
+			const response = await fetch(`http://localhost:3000/api/v1/todos?listKey=${listKey}&text=${newTodoText}`, {
+				method: 'POST',
+				headers: {
+					'Authorization': `Bearer ${apiKey}`,
+					'Content-Type': 'application/json'
 				}
-			}
-			return todo;
-		});
+			});
+			const data = await response.json();
+			const newTodo = data?.todo ?? null;
+			if (!newTodo) {
+				throw new Error("No TODO created");
+			} 
+
+			todos = [...todos, newTodo];
+			message = 'Todos created successfully';
+		} catch (error) {
+			message = 'Error creating TODO';
+			console.error(error);
+		}
 	}
 
-	// Remove a todo from the list
-	function deleteTodo(todoId) {
-		todos = todos.filter(todo => todo.id !== todoId);
-	}
+  onMount(async () => {
+    // create a user. store the response in electron-store
+    if (todos.length === 0) {
+      try {
+        const response = await fetch(`http://localhost:3000/api/v1/todos?listKey=${listKey}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        const data = await response.json();
+        const newTodos = data?.todos ?? null;
+        if (!newTodos) {
+          throw new Error("No user created");
+        }
+
+        todos = newTodos;
+        message = 'Todos successfuly found';
+      } catch (error) {
+        message = 'Error creating user';
+        console.error(error);
+      }
+    }
+  });
 </script>
 
 <main>
 	<h1>Simple Todo App</h1>
 
-	<!-- Input to add a new todo -->
-	<input
-		type="text"
-		bind:value={newTodoText}
-		placeholder="Enter a new todo"
-	/>
-	<button on:click={addTodo}>Add Todo</button>
+	<div class="add-todo-container">
+		<!-- Input to add a new todo -->
+		<input
+			type="text"
+			bind:value={newTodoText}
+			placeholder="Enter a new todo"
+		/>
 
-	{#if todos.length === 0}
-		<p>No todos available.</p>
-	{/if}
+		<!-- Todo: add the todo function -->
+		<button on:click={addTodo}>Add Todo</button>
+	</div>
 
 	<!-- Display the list of todos -->
 	<ul>
@@ -75,14 +89,16 @@
 				</div>
 				<div class="actions">
 					{#if todo.state === 'TODO'}
-						<button on:click={() => updateTodoState(todo.id, 'ONGOING')}>Start</button>
+						<!-- Update the State. -->
+						<button on:click={() => {}}>Start</button>
 					{:else if todo.state === 'ONGOING'}
-						<button on:click={() => updateTodoState(todo.id, 'DONE')}>Mark as Done</button>
-						<button on:click={() => updateTodoState(todo.id, 'TODO')}>Revert to TODO</button>
+					<button on:click={() => {}}>Mark as Done</button>
+					<button on:click={() => {}}>Revert to TODO</button>
 					{:else if todo.state === 'DONE'}
-						<button on:click={() => updateTodoState(todo.id, 'ONGOING')}>Reopen</button>
+					<button on:click={() => {}}>Reopen</button>
 					{/if}
-					<button on:click={() => deleteTodo(todo.id)}>Delete</button>
+					<!-- Updae delete TODO -->
+					<button on:click={() => {}}>Delete</button>
 				</div>
 			</li>
 		{/each}
@@ -106,8 +122,17 @@
 	input {
 		padding: 0.5rem;
 		font-size: 1rem;
+		border-radius: 15px;
     color: black;
 		width: 70%;
+	}
+	.add-todo-container {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 5px;
+		border-radius: 15px;
+  	box-shadow: "0 2px 5px 0 rgba(50,50,93,.1),0 1px 1px 0 rgba(0,0,0,.07)";
 	}
 	button {
 		padding: 0.5rem 1rem;

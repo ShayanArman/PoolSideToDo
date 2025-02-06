@@ -13,7 +13,7 @@
     errorMessage = '';
     
     try {
-      const response = await fetch(`http://localhost:3000/api/v1/lists/${shareKey}`, {
+      const response = await fetch(`http://localhost:3000/api/v1/lists/?shareKey=${shareKey}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${apiKey}`,

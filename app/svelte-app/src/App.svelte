@@ -4,9 +4,7 @@
   import ListView from './components/ListView.svelte'
   import JoinList from './components/JoinList.svelte';
 
-  import {
-    onMount
-  } from 'svelte';
+  import { onMount } from 'svelte';
 
   const apiKey = import.meta.env.VITE_KEY;
   let showJoinModal = false;
@@ -98,7 +96,7 @@
 {#if userId === undefined }
   <Loader message="Loading Poolside" />
 {:else if (!!userId && !!listKey) }
-  <ListView userId={userId} listKey={listKey} />
+  <ListView listKey={listKey} />
 {:else}
 <div>
   <div>

@@ -2,43 +2,63 @@ const { PrismaClient } = require('@prisma/client');
 const express = require('express');
 const router = express.Router();
 const prisma = new PrismaClient()
+    
 
+// Create a new Todo ? text and listKey needed.
 router.post('/', async (req, res) => {
+  const { text, listKey } = req.query;
+  if (!text || !listKey) {
+    return res.status(400).json({ error: 'Both text and listKey are required' });
+  }
+
   try {
-    const list = await prisma.todoList.create({
-      data: {}
+    // Verify the TodoList exists
+    const todoList = await prisma.todoList.findUnique({
+      where: { shareKey: listKey },
     });
 
-    if (!list) {
-      throw new Error("Unable to create list");
+    if (!todoList) {
+      return res.status(404).json({ error: "TodoList not found" });
     }
     
-    return res.status(201).json({
-      list
-    })
-  } catch (error) {
-    console.error('Error creating list:', error)
-    return res.status(500).json({
-      error: 'Failed to create lis'
-    })
-  }
-})
+    const todo = await prisma.todo.create({
+      data: { text, listId: todoList.id }
+    });
+    
+    if (!todo) {
+      throw new Error("Unable to create Todo");
+    }
 
-router.get('/:shareKey', async (req, res) => {
+    return res.status(201).json({ todo });
+  } catch (error) {
+    console.error('Error creating Todo:', error);
+    return res.status(500).json({ error: 'Failed to create Todo' });
+  }
+});
+
+
+// Get a list of todos ? listKey needed.
+router.get('/', async (req, res) => {
   try {
-    const { shareKey } = req.params;
-    const list = await prisma.todoList.findUnique({
-      where: { shareKey }
+    const { listKey } = req.query;
+    
+    const list = await prisma.todoList.findUnique({ where: { shareKey: listKey } });
+    if (!list) {
+      return res.status(404).json({ error: 'TodoList not found' });
+    }
+
+    const todos = await prisma.todo.findMany({
+      where: { listId: list.id }
     });
 
-    if (!list) {
+    if (!todos) {
       return res.status(404).json({ error: 'List not found' });
     }
 
-    return res.status(200).json({ list });
+    return res.status(200).json({ todos });
   } catch (error) {
-    console.error('Error fetching list:', error);
-    return res.status(500).json({ error: 'Failed to retrieve list' });
+    console.error('Error fetching Todo List:', error);
+    return res.status(500).json({ error: 'Failed to retrieve list of Todos' });
   }
 });
 

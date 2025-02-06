@@ -24,9 +24,9 @@ router.post('/', async (req, res) => {
   }
 })
 
-router.get('/:shareKey', async (req, res) => {
+router.get('/', async (req, res) => {
   try {
-    const { shareKey } = req.params;
+    const { shareKey } = req.query;
     const list = await prisma.todoList.findUnique({
       where: { shareKey }
     });
