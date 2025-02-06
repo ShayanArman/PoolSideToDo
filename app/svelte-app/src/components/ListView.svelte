@@ -8,6 +8,41 @@
 	let message = '';
 	let errorMessage = '';
 
+	const updateTodoState = async (todoId, targetState) => {
+		const todo = todos.find(t => t.id === todoId);
+		if (!todo) return;
+
+		const allowedTransitions = {
+			"TODO": ["ONGOING"],
+			"ONGOING": ["TODO", "DONE"],
+			"DONE": ["ONGOING"]
+		};
+		if (!allowedTransitions[todo.state].includes(targetState)) {
+			return;
+		}
+
+		try {
+			const response = await fetch(`http://localhost:3000/api/v1/todos/${todoId}?listKey=${listKey}`, {
+				method: 'PATCH',
+				headers: {
+						'Authorization': `Bearer ${apiKey}`,
+						'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ state: targetState })
+			});
+			const data = await response.json();
+			const updatedTodo = data?.todo ?? null;
+			if (!updatedTodo) {
+					throw new Error("No TODO updated");
+			}
+			todos = todos.map(t => t.id === todoId ? updatedTodo : t);
+			message = 'Todo updated successfully';
+		} catch (error) {
+			message = 'Error updating TODO';
+			console.error(error);
+		}
+	}
+
 	const addTodo = async () => {
 		if (!newTodoText) {
 			return;
@@ -19,7 +54,7 @@
 				headers: {
 					'Authorization': `Bearer ${apiKey}`,
 					'Content-Type': 'application/json'
-				}
+				},
 			});
 			const data = await response.json();
 			const newTodo = data?.todo ?? null;
@@ -90,14 +125,14 @@
 				<div class="actions">
 					{#if todo.state === 'TODO'}
 						<!-- Update the State. -->
-						<button on:click={() => {}}>Start</button>
+						<button on:click={() => updateTodoState(todo.id, "ONGOING")}>Start</button>
 					{:else if todo.state === 'ONGOING'}
-					<button on:click={() => {}}>Mark as Done</button>
-					<button on:click={() => {}}>Revert to TODO</button>
+					<button on:click={() => updateTodoState(todo.id, "DONE")}>Mark as Done</button>
+					<button on:click={() => updateTodoState(todo.id, "TODO")}>Revert to TODO</button>
 					{:else if todo.state === 'DONE'}
-					<button on:click={() => {}}>Reopen</button>
+					<button on:click={() => updateTodoState(todo.id, "ONGOING")}>Reopen</button>
 					{/if}
-					<!-- Updae delete TODO -->
+					<!-- Update delete TODO -->
 					<button on:click={() => {}}>Delete</button>
 				</div>
 			</li>
