@@ -83,7 +83,7 @@ router.patch('/:todoId', async (req, res) => {
         id: todoId,
         listId: list.id
       },
-      data: { state }
+      data: { updatedAt: new Date(), state }
     });
 
     return res.status(200).json({ todo });
@@ -92,5 +92,33 @@ router.patch('/:todoId', async (req, res) => {
     return res.status(500).json({ error: 'Failed to update Todo' });
   }
 });
+
+router.delete('/:todoId', async (req, res) => {
+  const { todoId } = req.params;
+  const { listKey } = req.query;
+ 
+  if (!listKey) {
+    return res.status(400).json({ error: 'ListKey is required' });
+  }
+ 
+  try {
+    const list = await prisma.todoList.findUnique({ where: { shareKey: listKey } });
+    if (!list) {
+      return res.status(404).json({ error: 'TodoList not found' });
+    }
+ 
+    await prisma.todo.delete({
+      where: { 
+        id: todoId,
+        listId: list.id
+      }
+    });
+ 
+    return res.status(200).json({ message: 'Todo deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting Todo:', error);
+    return res.status(500).json({ error: 'Failed to delete Todo' });
+  }
+ });
 
 module.exports = router;

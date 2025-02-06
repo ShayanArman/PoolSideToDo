@@ -15,7 +15,7 @@ app.use(cors({
   origin: process.env.NODE_ENV === 'development' 
     ? 'http://localhost:5173' 
     : 'https://poolsidelist.ai/',
-  methods: ['GET', 'POST', 'PATCH'],
+  methods: ['GET', 'POST', 'PATCH', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 

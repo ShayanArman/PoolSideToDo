@@ -8,6 +8,27 @@
 	let message = '';
 	let errorMessage = '';
 
+	const deleteTodo = async (todoId) => {
+   const todo = todos.find(t => t.id === todoId);
+   if (!todo) return;
+   try {
+			const response = await fetch(`http://localhost:3000/api/v1/todos/${todoId}?listKey=${listKey}`, {
+					method: 'DELETE', 
+					headers: {
+							'Authorization': `Bearer ${apiKey}`,
+							'Content-Type': 'application/json'
+					}
+			});
+			if (response.ok) {
+				todos = todos.filter(t => t.id !== todoId);
+				message = 'Todo deleted successfully';
+			}
+   } catch (error) {
+       message = 'Error deleting TODO';
+       console.error(error); 
+   }
+}
+
 	const updateTodoState = async (todoId, targetState) => {
 		const todo = todos.find(t => t.id === todoId);
 		if (!todo) return;
@@ -133,7 +154,7 @@
 					<button on:click={() => updateTodoState(todo.id, "ONGOING")}>Reopen</button>
 					{/if}
 					<!-- Update delete TODO -->
-					<button on:click={() => {}}>Delete</button>
+					<button on:click={() => deleteTodo(todo.id)}>Delete</button>
 				</div>
 			</li>
 		{/each}
