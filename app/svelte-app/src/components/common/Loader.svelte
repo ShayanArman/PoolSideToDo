@@ -1,5 +1,5 @@
 <script>
-  export let message = "Loading...";
+  let {message="Loading..."} = $props();
 </script>
 
 <div class="loader-container">
